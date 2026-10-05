@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import NostrLogin from "./NostrLogin";
 import NostrHandshake from "./NostrHandshake";
 
-// The nfunc.xyz subdomains. glmps is the only one so far; a new one is added
-// here, in every nfunc fork, and its link appears in the strip by itself.
-const SUBS = ["glmps"] as const;
+// The nfunc.xyz subdomains that exist; a new one is added here in every nfunc
+// fork, and its link appears in the strip by itself.
+const SUBS = ["glmps", "npub"] as const;
 
 export default function Nav() {
   const host =
