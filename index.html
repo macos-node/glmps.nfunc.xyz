@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" class="dark theme-mono">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>glmps.nfunc.xyz</title>
+    <meta name="description" content="A public discography — releases published as signed Nostr events." />
+    <meta property="og:title" content="glmps.nfunc.xyz" />
+    <meta property="og:description" content="A public discography — releases published as signed Nostr events." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#0a0a0b" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Apply a stored theme before paint (no flash). The theme-<x> class on
+      // <html> above is the fork default; this only overrides it when the
+      // viewer has picked one. Kept identical across both glmps forks.
+      try {
+        var t = localStorage.getItem("glmps.theme");
+        if (t === "fizx" || t === "upleb" || t === "mono") {
+          var cl = document.documentElement.classList;
+          ["theme-fizx", "theme-upleb", "theme-mono"].forEach(function (c) {
+            cl.remove(c);
+          });
+          cl.add("theme-" + t);
+        }
+      } catch (e) {}
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

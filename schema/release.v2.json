@@ -1,0 +1,152 @@
+{
+  "$comment": "Canonical Nostr wire contract between ndisc (publisher) and the glmps web viewers (consumers). v2 supersedes v1 — see schema/README.md and schema/v2-proposal.md. Source of truth: xjmzx/ndisc src-tauri/src/lib.rs (release_event / delete_release); the contract test `mod schema_v2` pins ndisc's output to this file.",
+  "schemaVersion": "release.v2",
+  "supersedes": "release.v1",
+  "supersededBy": null,
+  "frozen": true,
+  "canonicalHome": "xjmzx/ndisc — schema/release.v2.json",
+  "kinds": {
+    "release": {
+      "kind": 31237,
+      "class": "addressable / parameterized-replaceable (range 30000-39999)",
+      "addressableBy": ["pubkey", "kind", "d-tag"],
+      "content": "Release notes — plain text. May be an empty string.",
+      "tags": {
+        "d": {
+          "required": true,
+          "format": "disco-vault:<integer release id>",
+          "note": "The ONLY structurally guaranteed tag. The `disco-vault:` prefix is the legacy app name and is frozen — do not change it to `ndisc:`."
+        },
+        "title": { "required": false, "type": "string", "note": "Present unless empty." },
+        "artist": { "required": false, "type": "string", "note": "Present unless empty." },
+        "type": { "required": false, "enum": ["music", "sample", "stem", "field-recording", "message", "other"] },
+        "category": { "required": false, "enum": ["album", "ep", "single", "compilation", "mix", "live", "soundtrack", "bootleg", "miscellaneous"] },
+        "medium": { "required": false, "enum": ["physical", "digital"], "note": "OPTIONAL — frequently absent. Consumers must not require it." },
+        "format": { "required": false, "type": "string" },
+        "year": { "required": false, "type": "string", "note": "Integer rendered as a string." },
+        "tracks": { "required": false, "type": "string", "note": "ADDITIVE (2026-06): expected total tracks for the release, integer rendered as a string. A release property (from the source TRACKTOTAL metadata), NOT a count of what's present on any one device. Optional and backward-compatible — older consumers ignore it; emitted only when known. Does not bump the schema version." },
+        "discs": { "required": false, "type": "string", "note": "ADDITIVE (2026-06): total number of discs in the release, integer rendered as a string. A release property like `tracks`, NOT a per-device count. Derived from the release's format breakdown (e.g. Discogs format quantities, so 2x LP counts as 2 discs), so it is present only for releases enriched from such a source — digital folder imports carry no disc count. Emitted only when greater than zero; consumers surface it only for genuine multi-disc releases (> 1). Optional and backward-compatible — older consumers ignore it. Does not bump the schema version." },
+        "video": { "required": false, "type": "string", "note": "ADDITIVE (2026-06): count of audio-visual (video) files in the release, integer rendered as a string. Presence marks the release as carrying video (a music video, live capture, visualiser, etc.); the value is an optional richer hint. Extension-detected on the emitter (ndisc) — so it may over-count an audio-only container; treat presence, not exactness, as the signal. Emitted only when greater than zero. Optional and backward-compatible — A/V-unaware consumers ignore it. Does not bump the schema version. See video-incubation-2026-06.md." },
+        "label": { "required": false, "type": "string" },
+        "catalog": { "required": false, "type": "string" },
+        "country": { "required": false, "type": "string" },
+        "condition": { "required": false, "type": "string", "note": "Discogs grade verbatim, e.g. 'Near Mint (NM or M-)'." },
+        "source": { "required": false, "type": "string", "note": "URL — emitted only when it is http(s)." },
+        "i": { "required": false, "type": "string", "repeatable": true, "occurrences": "0-2", "format": "discogs:release:<id> | musicbrainz:release:<mbid>", "note": "NIP-73 external content IDs." },
+        "image": { "required": false, "type": "string", "note": "Cover-art URL." },
+        "genre": {
+          "required": false,
+          "type": "string",
+          "repeatable": true,
+          "occurrences": "0-3",
+          "ordered": true,
+          "note": "NEW IN v2. Up to three ordered genre slots: first = primary, second = secondary, third = tertiary. Each slug is one of the active values in `genreSlugs` (38 after the 2026-06b genre round; six deprecated slugs — four compound pairs plus poetry/spiritual — remain valid for legacy reads). Order of `genre` tags in the emitted event IS the priority order — emitters MUST preserve it, consumers MUST treat it as authoritative. Invariants enforced by the emitter and validated by conformant consumers (see `genreInvariants`).",
+          "valuesEnum": "see genreSlugs below"
+        }
+      },
+      "rule": "Every tag except `d` is omitted entirely when its value is empty. Consumers MUST require only `d` structurally and treat all other tags — including `title`, `artist`, `medium`, and `genre` — as optional."
+    },
+    "deletion": {
+      "kind": 5,
+      "spec": "NIP-09",
+      "content": "Empty string.",
+      "tags": {
+        "a": {
+          "required": true,
+          "format": "31237:<author pubkey hex>:disco-vault:<integer release id>",
+          "note": "Addressable coordinate of the deleted release. Authoritative — match this verbatim."
+        },
+        "k": {
+          "required": true,
+          "value": "31237",
+          "note": "Redundant: the kind is already encoded in `a`. Consumers may ignore `k`."
+        }
+      },
+      "rule": "Consumers MUST apply deletions client-side. Some relays (e.g. Primal) do not enforce kind:5, so server-side filtering cannot be relied on."
+    }
+  },
+  "genreSlugs": {
+    "_comment": "Grouped for semantics + palette ONLY — NOT a hierarchy; all active slugs are pure peers (see genreInvariants). The groups map to three colour tiers: `acoustic` (primary, muted/earthy), `electronic` (secondary, vivid), `tertiary` (optional/cross-cutting). `bridge` slugs (dub, noise) sit between the acoustic and electronic families and carry standalone hues. A zero-count slug renders no chip in data but stays selectable in pickers. Adding a slug is additive (re-pin the SHA, no v3 bump) provided existing slugs stay stable. A rename is done ADDITIVELY too — add the new slug to active and retire the old one to `deprecated` (kept valid for legacy reads), with a backfill remapping local rows; only an in-place rename/removal that would break legacy reads is a v3 bump. The 2026-06b round did exactly this: poetry→spoken, spiritual→conscious, plus new disco/garage/turntablism. Display is verbatim except `rnb` → 'R&B' and the glmps-side cosmetic `soundtrack` → 'film'.",
+    "acoustic": [
+      "ambient",
+      "blues",
+      "classical",
+      "disco",
+      "experimental",
+      "folk",
+      "funk",
+      "hip-hop",
+      "jazz",
+      "latin",
+      "metal",
+      "pop",
+      "reggae",
+      "rnb",
+      "rock",
+      "soul",
+      "soundtrack",
+      "spoken"
+    ],
+    "electronic": [
+      "acid",
+      "bass",
+      "breaks",
+      "dnb",
+      "downtempo",
+      "electro",
+      "electronic",
+      "footwork",
+      "garage",
+      "house",
+      "jungle",
+      "techno"
+    ],
+    "bridge": [
+      "dub",
+      "noise"
+    ],
+    "tertiary": [
+      "boom-bap",
+      "conscious",
+      "lo-fi",
+      "trance",
+      "trap",
+      "turntablism"
+    ],
+    "deprecated": {
+      "_comment": "Retired slugs — NEVER emitted on new events, retained as VALID for reading legacy events and cross-relay NIP-77 copies. Two kinds: (1) original compound slash-pairs from the v2 set, split/collapsed in the 2026-06 restructure, which display WITH a slash — classical-folk→classical+folk, dnb-jungle→dnb+jungle, drone-noise→noise, footwork-trap→footwork; (2) 1:1 renames from the 2026-06b round, which display VERBATIM — poetry→spoken, spiritual→conscious.",
+      "slugs": [
+        "classical-folk",
+        "dnb-jungle",
+        "drone-noise",
+        "footwork-trap",
+        "poetry",
+        "spiritual"
+      ]
+    }
+  },
+  "genreInvariants": {
+    "_comment": "Cross-slot constraints. The emitter enforces these at capture time; conformant consumers SHOULD validate on read with strict-but-recoverable handling (silently drop the offending slot, keep the rest). All 38 active slugs are pure peers — the acoustic / electronic / bridge / tertiary groups are palette + semantic groupings, not a hierarchy; any combination across groups is permitted in the same event. Meaning composes by stacking slugs rather than implying parent semantics.",
+    "slotCap": 3,
+    "distinct": "All emitted `genre` slugs in a single event MUST be distinct.",
+    "denseOrdering": "Slots are dense on the wire — present slugs occupy the lowest indices. A consumer receiving a sparse sequence (e.g. via a non-canonical re-emitter) SHOULD compact before indexing."
+  },
+  "validation": {
+    "policy": "strict-but-recoverable",
+    "unknownGenreSlug": "Treat as absent (no colour, no chip) OR render with a neutral fallback. Do NOT throw or fail the parse.",
+    "invariantViolation": "Silently drop the offending slot(s); keep the remaining valid ones. Do NOT throw."
+  },
+  "consumes": {
+    "profile": {
+      "kind": 0,
+      "direction": "read-only",
+      "note": "ndisc reads the author's kind:0 metadata (name / nip05 / picture) for display. It never publishes kind:0."
+    }
+  },
+  "naddr": {
+    "spec": "NIP-19 naddr",
+    "coordinate": { "kind": 31237, "pubkey": "<author pubkey>", "identifier": "disco-vault:<integer release id>" }
+  },
+  "changePolicy": "FROZEN once shipped, with two convention-permitted ADDITIVE exceptions that do NOT force a v3 bump (the `d`-only structural rule guarantees old consumers stay compatible): (1) new optional slugs inside `genreSlugs`, existing slugs stable; (2) new OPTIONAL tags that consumers may ignore — e.g. the additive `tracks`, `discs`, and `video` tags (2026-06). Any BREAKING change — renaming/removing slugs or tags, changing tag semantics, breaking ordering, or making a previously-optional tag required — is a coordinated v3 bump: add release.v3.json and migrate consumers, never edit this file. When an additive amendment lands, re-vendor this file into the glmps + ndisc.view consumers and re-pin their SHA.",
+  "rolloutFromV1": "v1 readers ignore the `genre` tag (additive rule) and surface no genre data until upgraded. ndisc emits only v2 format; no v1-compatible proxy (e.g. NIP-12 `t` tags) is added. See schema/v2-proposal-glmps-reply.md for the v2-only emission decision rationale."
+}

@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
+
+    /* release.v2 genre palette — shared with ndisc + the sibling glmps fork verbatim.
+       Theme-independent (no .dark override). Reference via rgb(var(--c-g-<slug>) / <alpha>). */
+    /* acoustic (primary) */
+    --c-g-ambient:       176 199 209;
+    --c-g-blues:          56  92 150;
+    --c-g-classical:     226 216 192;
+    --c-g-experimental:  106 168 168;
+    --c-g-folk:          196 164 116;
+    --c-g-funk:          232 178  55;
+    --c-g-hip-hop:       158 104  66;
+    --c-g-jazz:          199 127  78;
+    --c-g-latin:         232 132  52;
+    --c-g-metal:          92 100 110;
+    --c-g-pop:           255 165 201;
+    --c-g-poetry:        158 148 180;
+    --c-g-reggae:         90 138  79;
+    --c-g-rnb:           150  80 112;
+    --c-g-rock:          176  57  46;
+    --c-g-soul:          198 100  84;
+    --c-g-soundtrack:    100 137 184;
+    /* electronic (secondary) */
+    --c-g-acid:          196 232  52;
+    --c-g-bass:          104  72 214;
+    --c-g-breaks:        232  64 110;
+    --c-g-dnb:            40 194 200;
+    --c-g-downtempo:     122  74 140;
+    --c-g-electro:       240  62 176;
+    --c-g-electronic:    140 140 140;
+    --c-g-footwork:      160  74 226;
+    --c-g-house:         196  74 206;
+    --c-g-jungle:         52 198 110;
+    --c-g-techno:         58 124 244;
+    /* bridge */
+    --c-g-dub:            22 138 104;
+    --c-g-noise:         234  80  46;
+    /* tertiary (optional) */
+    --c-g-boom-bap:      176 132  92;
+    --c-g-lo-fi:         158 130 128;
+    --c-g-spiritual:     178 118  56;
+    --c-g-trance:        120 100 245;
+    --c-g-trap:          128  84  96;
+    /* 2026-06b genre round — disco/spoken (acoustic), garage (electronic), conscious/turntablism (tertiary) */
+    --c-g-disco:         214 110 168;
+    --c-g-spoken:        156 146 178;
+    --c-g-garage:         96 186 224;
+    --c-g-conscious:     156 138  84;
+    --c-g-turntablism:   116 120 134;
+    /* deprecated compound pairs — legacy reads only, render with slash */
+    --c-g-classical-folk:232 220 195;
+    --c-g-dnb-jungle:    160  39 135;
+    --c-g-drone-noise:   159 110 145;
+    --c-g-footwork-trap: 255 133 200;
+  }
+
+  /* Three colour themes, shared verbatim across BOTH glmps forks — the app is
+     always .dark, and one of these theme-<x> classes rides alongside it on
+     <html> (default baked in index.html, switched by the wordmark tap). Only
+     --primary / --accent / --ring carry the brand hue; the neutral chrome is
+     common to fizx + upleb. mono greys the chrome so colour is reserved for the
+     genre chips (theme-independent, in :root) — never a fork default. */
+  .theme-fizx {
+    /* fizx.uk — emerald primary (Side A), purple accent (Side B) */
+    --background: 215 28% 7%;       /* #0d1117 */
+    --foreground: 210 40% 98%;
+    --card: 215 22% 10%;
+    --card-foreground: 210 40% 98%;
+    --primary: 158 64% 52%;         /* emerald-400 #34d399 */
+    --primary-foreground: 215 28% 7%;
+    --muted: 215 18% 14%;
+    --muted-foreground: 215 12% 55%;
+    --accent: 263 89% 75%;          /* purple-400 #a78bfa */
+    --accent-foreground: 215 28% 7%;
+    --border: 215 15% 15%;
+    --input: 215 15% 15%;
+    --ring: 158 64% 52%;
+  }
+
+  .theme-upleb {
+    /* upleb.uk — coral primary, amber accent */
+    --background: 215 28% 7%;       /* #0d1117 */
+    --foreground: 210 40% 98%;
+    --card: 215 22% 10%;
+    --card-foreground: 210 40% 98%;
+    --primary: 15 100% 64%;         /* coral #FF7849 */
+    --primary-foreground: 215 28% 7%;
+    --muted: 215 18% 14%;
+    --muted-foreground: 215 12% 55%;
+    --accent: 35 100% 64%;          /* amber #FFB347 */
+    --accent-foreground: 215 28% 7%;
+    --border: 215 15% 15%;
+    --input: 215 15% 15%;
+    --ring: 15 100% 64%;
+  }
+
+  .theme-mono {
+    /* Monochrome — greyed chrome, cool near-black base. Mirrors ndisc/nview
+       .theme-mono in glmps's shadcn HSL tokens; genre chips stay coloured. */
+    --background: 240 6% 4%;
+    --foreground: 240 8% 95%;
+    --card: 240 5% 7%;
+    --card-foreground: 240 8% 95%;
+    --primary: 240 6% 92%;
+    --primary-foreground: 240 6% 6%;
+    --muted: 240 5% 14%;
+    --muted-foreground: 240 4% 52%;
+    --accent: 240 5% 80%;
+    --accent-foreground: 240 6% 6%;
+    --border: 240 5% 15%;
+    --input: 240 5% 15%;
+    --ring: 240 6% 92%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-mono;
+    font-feature-settings: "ss01", "cv11";
+  }
+}
