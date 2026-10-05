@@ -4,7 +4,7 @@ import NostrHandshake from "./NostrHandshake";
 
 // The nfunc.xyz subdomains that exist; a new one is added here in every nfunc
 // fork, and its link appears in the strip by itself.
-const SUBS = ["glmps", "npub"] as const;
+const SUBS = ["glmps", "npub", "pls"] as const;
 
 export default function Nav() {
   const host =
